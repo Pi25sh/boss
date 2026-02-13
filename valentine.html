@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title> 💌</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #ffb3c6 0%, #ff4b6e 40%, #1b0024 100%);
+      color: #fff;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .overlay-gradient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.18) 0, transparent 55%),
+        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.12) 0, transparent 55%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+
+    .hearts {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .heart {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #ffdde9;
+      transform: rotate(45deg);
+      animation: floatUp linear infinite;
+      opacity: 0.6;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: inherit;
+    }
+    .heart::before {
+      top: -8px;
+      left: 0;
+    }
+    .heart::after {
+      left: -8px;
+      top: 0;
+    }
+    @keyframes floatUp {
+      0% {
+        transform: translateY(100vh) rotate(45deg) scale(0.7);
+        opacity: 0;
+      }
+      15% {
+        opacity: 0.7;
+      }
+      100% {
+        transform: translateY(-10vh) rotate(45deg) scale(1.1);
+        opacity: 0;
+      }
+    }
+
+    .card {
+      position: relative;
+      z-index: 2;
+      width: min(900px, 92vw);
+      min-height: 420px;
+      padding: 32px 28px 32px;
+      border-radius: 28px;
+      background: rgba(9, 9, 22, 0.78);
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+    .title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.75;
+      margin-top: 4px;
+    }
+    .step-indicator {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+    }
+    .step-dot.active {
+      background: #ff6f9b;
+      box-shadow: 0 0 12px rgba(255, 111, 155, 0.9);
+    }
+
+    .question {
+      font-size: 2.2rem;
+      font-weight: 800;
+      text-align: center;
+      margin-top: 32px;
+      margin-bottom: 32px;
+      line-height: 1.2;
+    }
+
+    .center-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+      user-select: none;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-yes {
+      background: linear-gradient(135deg, #ff6f9b, #ff3f6c);
+      color: white;
+      box-shadow:
+        0 12px 30px rgba(255, 63, 108, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+    .btn-yes:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow:
+        0 16px 40px rgba(255, 63, 108, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.26);
+    }
+
+    .btn-no {
+      background: rgba(255, 255, 255, 0.07);
+      color: #ffd9e4;
+      box-shadow:
+        0 8px 22px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.18);
+      position: absolute;
+      /* position adjusted by JS */
+    }
+    .btn-no:hover {
+      background: rgba(255, 255, 255, 0.13);
+    }
+
+    .note {
+      font-size: 0.9rem;
+      opacity: 0.75;
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    section {
+      display: none;
+      margin-top: 10px;
+    }
+
+    section.active {
+      display: block;
+      animation: fadeInUp 0.38s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .label {
+      font-size: 0.95rem;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+
+    .letter-display {
+      margin-top: 6px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: radial-gradient(circle at top left, rgba(255, 111, 155, 0.22), rgba(10, 3, 22, 0.95));
+      font-size: 0.97rem;
+      line-height: 1.6;
+      color: #ffeef6;
+      white-space: pre-wrap;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 14px 16px;
+      background: rgba(15, 10, 25, 0.9);
+      color: #ffeef6;
+      resize: vertical;
+      font-size: 0.96rem;
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    textarea::placeholder {
+      color: rgba(255, 237, 248, 0.55);
+    }
+    textarea:focus {
+      border-color: #ff7ba7;
+      box-shadow:
+        0 0 0 1px rgba(255, 123, 167, 0.8),
+        0 18px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 6px;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #ffc8de;
+      border-radius: 999px;
+      padding: 10px 20px;
+      border: 1px dashed rgba(255, 255, 255, 0.28);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, #ff6f9b, #ff3f6c);
+      color: white;
+      box-shadow:
+        0 10px 30px rgba(255, 63, 108, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+      padding-inline: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+    .btn-next span {
+      font-size: 1.1rem;
+    }
+    .btn-next:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 16px 40px rgba(255, 63, 108, 0.85),
+        0 0 0 1px rgba(255, 255, 255, 0.23);
+    }
+
+    .upload-area {
+      margin-top: 10px;
+      border-radius: 22px;
+      border: 1px dashed rgba(255, 255, 255, 0.32);
+      padding: 18px 18px 14px;
+      background: radial-gradient(circle at top left, rgba(255, 111, 155, 0.18), rgba(3, 0, 10, 0.9));
+    }
+
+    .upload-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .upload-row label {
+      font-size: 0.86rem;
+      opacity: 0.82;
+    }
+
+    input[type="file"] {
+      max-width: 260px;
+      font-size: 0.82rem;
+      color: #ffe4f0;
+    }
+
+    .btn-magic {
+      background: rgba(0, 0, 0, 0.6);
+      color: #ffd8ea;
+      border-radius: 999px;
+      padding: 8px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      font-size: 0.84rem;
+    }
+    .btn-magic:hover {
+      background: rgba(0, 0, 0, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .gallery {
+      position: relative;
+      margin-top: 14px;
+      min-height: 160px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 10% 0, rgba(255, 255, 255, 0.08) 0, rgba(0, 0, 0, 0.85) 60%);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .gallery-grid {
+      /* Photos are hidden so they don't show on the web page, only in fullscreen slideshow */
+      display: none;
+    }
+
+    .gallery img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(255, 255, 255, 0.15);
+      opacity: 0;
+      transform: scale(0.8) translateY(20px);
+      animation: photoIn 0.45s ease forwards;
+    }
+
+    @keyframes photoIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .burst-photo {
+      position: absolute !important;
+      width: 120px !important;
+      height: 120px !important;
+      object-fit: cover;
+      border-radius: 18px !important;
+      animation: photoBurst 2.8s ease-out forwards;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    @keyframes photoBurst {
+      0% {
+        transform: translate(var(--x-start), var(--y-start)) scale(0) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      60% {
+        transform: translate(var(--x-mid), var(--y-mid)) scale(1.1) rotate(var(--angle));
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--x-end), var(--y-end)) scale(0.4) rotate(calc(var(--angle) * 1.5));
+        opacity: 0;
+      }
+    }
+
+    .gallery-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .gallery-empty span {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+
+    .slideshow-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(0, 0, 0, 0.9), rgba(10, 0, 20, 0.98));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      color: #ffeef6;
+    }
+
+    .slideshow-overlay.active {
+      display: flex;
+      animation: fadeInUp 0.35s ease-out;
+    }
+
+    .slideshow-inner {
+      text-align: center;
+      max-width: 96vw;
+      max-height: 92vh;
+    }
+
+    .slideshow-image {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 24px;
+      object-fit: contain;
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.9),
+        0 0 0 2px rgba(255, 255, 255, 0.3);
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    .slideshow-text {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .tiny {
+      font-size: 0.78rem;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 22px 16px 22px;
+        border-radius: 22px;
+      }
+      .question {
+        font-size: 1.7rem;
+        margin-top: 22px;
+      }
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .center-row {
+        flex-direction: column;
+        margin-top: 16px;
+      }
+      .btn-no {
+        position: fixed;
+      }
+      input[type="file"] {
+        max-width: 100%;
+      }
+      .step-indicator {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-gradient"></div>
+  <div class="hearts" id="hearts-container"></div>
+
+  <div class="card" id="card">
+    <div class="card-header">
+      <div>
+        <div class="title">For the real boss!! 👑</div>
+        <div class="subtitle">This little page is just for you, the real boss of my heart.</div>
+      </div>
+      <div class="step-indicator">
+        <div class="step-dot active" data-step-dot="1"></div>
+        <div class="step-dot" data-step-dot="2"></div>
+        <div class="step-dot" data-step-dot="3"></div>
+        <span id="step-label">Step 1 · The Big Question</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Yes / No -->
+    <section id="step1" class="active">
+      <div class="question">Will you be my Valentine?</div>
+      <div class="center-row" id="buttons-row">
+        <button class="btn-yes" id="yesBtn">Yes, obviously 💗</button>
+        <button class="btn-no" id="noBtn">No 🙈</button>
+      </div>
+      <div class="note">P.S. The "No" button is shy, so you might never catch it...</div>
+    </section>
+
+    <!-- Step 2: Letter -->
+    <section id="step2">
+      <div class="label">A little letter for the real boss 💌</div>
+      <div class="letter-display" id="letterDisplay"></div>
+      <div class="hint">Just sit back and read. I wrote this only for you.</div>
+      <div class="footer-row">
+        <button class="btn-ghost" id="backToQuestion">← Back to the question</button>
+        <button class="btn-next" id="toPhotos">
+          Next · The photo magic <span>✨</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Step 3: Photos -->
+    <section id="step3">
+      <div class="label">Some of our favorite memories 📸</div>
+      <p class="hint tiny">I picked these just for you, my real boss.</p>
+      <div class="center-row" style="margin-top: 14px;">
+        <button class="btn-magic" id="burstBtn">Tap for a little surprise 🎁</button>
+      </div>
+      <div class="gallery" id="gallery">
+        <div class="gallery-empty" id="galleryEmpty">
+          <span>💫</span>
+          Photos coming right up with a little sparkle.
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </div>
+      <div class="footer-row">
+        <button class="btn-ghost" id="backToLetter">← Back to letter</button>
+        <div class="tiny">
+          Made with way too much love.  
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Full screen slideshow -->
+  <div class="slideshow-overlay" id="slideshowOverlay">
+    <div class="slideshow-inner">
+      <img id="slideshowImg" class="slideshow-image" src="" alt="Our memory" />
+      <div class="slideshow-text">Tap anywhere or press Esc to close · Photos auto-play like a little movie.</div>
+    </div>
+  </div>
+
+  <!-- Slideshow music (EDIT the src to your own song file) -->
+  <audio id="slideshowAudio" src="Perfect-(Mr-Jat.in).mp3"></audio>
+
+  <script>
+    // Floating background hearts
+    const heartsContainer = document.getElementById("hearts-container");
+    function spawnHeart() {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      const startX = Math.random() * window.innerWidth;
+      const duration = 12 + Math.random() * 6;
+      const delay = -Math.random() * duration;
+
+      heart.style.left = startX + "px";
+      heart.style.animationDuration = duration + "s";
+      heart.style.animationDelay = delay + "s";
+      heart.style.opacity = 0.35 + Math.random() * 0.4;
+      heart.style.transform = "translateY(100vh) rotate(45deg) scale(" + (0.6 + Math.random() * 0.6) + ")";
+
+      heartsContainer.appendChild(heart);
+      setTimeout(() => heart.remove(), duration * 1000 + 2000);
+    }
+    for (let i = 0; i < 28; i++) spawnHeart();
+    setInterval(spawnHeart, 1200);
+
+    // Step management
+    const steps = {
+      1: document.getElementById("step1"),
+      2: document.getElementById("step2"),
+      3: document.getElementById("step3"),
+    };
+
+    const stepLabel = document.getElementById("step-label");
+    const stepTitles = {
+      1: "Step 1 · The Big Question",
+      2: "Step 2 · Your Love Letter",
+      3: "Step 3 · Photo Magic",
+    };
+
+    // EDIT THIS: your letter for the real boss (it will only display, not be editable on the site)
+    const letterText = `Dearesttt The Real Boss!!!!!,
+
+One small message by your captain 🫡🧑‍✈️
+Firstly sorry i can't do anything special this valentine day but i feel everday special with you my sweetheart 🫂🫂
+I still remember the first day you texted till the day today it's 565 days of our small journey 🛣️
+I was going through the chat we had from the first text i literally visualize the journey we traveled together! 🫂
+Shivaniiii we had many moments together but the one of the best moment was we were walking and spending time a lot together on the streets of Malaysia 🇲🇾
+Shivaniiii I have lot to talk but as i mentioned at top a small message to my valentine 😚😚
+There's a small surprise ahead!!! 
+Your captain 💋🫂`;
+
+    const letterDisplay = document.getElementById("letterDisplay");
+    if (letterDisplay) {
+      letterDisplay.textContent = letterText;
+    }
+
+    function setStep(step) {
+      Object.entries(steps).forEach(([num, sec]) => {
+        sec.classList.toggle("active", Number(num) === step);
+      });
+      stepLabel.textContent = stepTitles[step];
+      document.querySelectorAll("[data-step-dot]").forEach((dot) => {
+        const stepNum = Number(dot.getAttribute("data-step-dot"));
+        dot.classList.toggle("active", stepNum === step);
+      });
+    }
+
+    // Yes / No logic
+    const card = document.getElementById("card");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const buttonsRow = document.getElementById("buttons-row");
+
+    // Initial position for No button (near right side of buttons row)
+    function placeNoButtonRandom(initial = false) {
+      const cardRect = card.getBoundingClientRect();
+      const padding = 24;
+      const maxX = cardRect.width - padding - 120;
+      const maxY = cardRect.height - padding - 60;
+      const minX = padding;
+      const minY = 90; // avoid header
+
+      const x = Math.random() * (maxX - minX) + minX;
+      const y = Math.random() * (maxY - minY) + minY;
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+
+      if (initial) {
+        // Temporarily disable transition so first move is instant
+        noBtn.style.transition = "none";
+        requestAnimationFrame(() => {
+          noBtn.style.transition = "transform 0.18s ease, box-shadow 0.18s ease, background 0.2s ease, opacity 0.2s ease, left 0.2s ease, top 0.2s ease";
+        });
+      }
+    }
+
+    placeNoButtonRandom(true);
+
+    document.addEventListener("mousemove", (e) => {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      const rect = noBtn.getBoundingClientRect();
+      const btnCenterX = rect.left + rect.width / 2;
+      const btnCenterY = rect.top + rect.height / 2;
+
+      const dx = mouseX - btnCenterX;
+      const dy = mouseY - btnCenterY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      const runRadius = 130;
+
+      if (distance < runRadius) {
+        // Move in opposite direction of cursor
+        const angle = Math.atan2(dy, dx) + Math.PI; // opposite
+        const moveDist = runRadius - distance + 40;
+
+        const cardRect = card.getBoundingClientRect();
+        let newX = btnCenterX + Math.cos(angle) * moveDist - cardRect.left - rect.width / 2;
+        let newY = btnCenterY + Math.sin(angle) * moveDist - cardRect.top - rect.height / 2;
+
+        const padding = 20;
+        const maxX = cardRect.width - rect.width - padding;
+        const maxY = cardRect.height - rect.height - padding;
+
+        newX = Math.min(Math.max(newX, padding), maxX);
+        newY = Math.min(Math.max(newY, 80), maxY); // don't go into header
+
+        noBtn.style.left = newX + "px";
+        noBtn.style.top = newY + "px";
+      }
+    });
+
+    noBtn.addEventListener("click", (e) => {
+      // Even if user somehow clicks it, quickly move it and change text
+      e.preventDefault();
+      placeNoButtonRandom();
+      noBtn.textContent = "Nice try 😏";
+    });
+
+    yesBtn.addEventListener("click", () => {
+      setStep(2);
+    });
+
+    // Navigation buttons
+    document.getElementById("backToQuestion").addEventListener("click", () => setStep(1));
+    document.getElementById("toPhotos").addEventListener("click", () => setStep(3));
+    document.getElementById("backToLetter").addEventListener("click", () => setStep(2));
+
+    // Photo gallery (pre-loaded)
+    const galleryGrid = document.getElementById("galleryGrid");
+    const galleryEmpty = document.getElementById("galleryEmpty");
+    const burstBtn = document.getElementById("burstBtn");
+    const gallery = document.getElementById("gallery");
+
+    // Fullscreen slideshow elements
+    const slideshowOverlay = document.getElementById("slideshowOverlay");
+    const slideshowImg = document.getElementById("slideshowImg");
+    const slideshowAudio = document.getElementById("slideshowAudio");
+
+    // EDIT THIS: add paths/URLs to your photos here (they will show on the site & slideshow)
+    let storedImages = [
+      "111111.png",
+      "1771007484015.png",
+      "1771007484034.png",
+      "1771007484051.png",
+      "1771007484068.png",
+      "1771007484085.png",
+      "1771007484101.png",
+      "1771007484118.png",
+      "1771007484135.png",
+      "1771007484151.png",
+      "1771007484167.png",
+      "1771007484183.png",
+      "1771007484199.png",
+      "1771007484215.png",
+      "1771007484232.png",
+      "1771007484248.png",
+      "1771007484264.png",
+      "1771007484279.png",
+      "1771007484296.png",
+      "1771007484312.png",
+      "1771007484329.png",
+      "1771007484346.png",
+      "1771007484362.png",
+      "1771007484379.png",
+      "1771007484395.png",
+      "1771007484411.png",
+      "1771007484428.png",
+      "1771007484445.png",
+      "1771007484461.png",
+      "1771007484478.png",
+      "1771007484494.png",
+      "1771007484528.png",
+      "1771007484544.png",
+
+      // Example paths – replace these with your real photos
+      // "images/boss1.jpg",
+      // "images/boss2.jpg",
+      // "images/boss3.jpg",
+    ];
+
+    function refreshGallery() {
+      galleryGrid.innerHTML = "";
+      if (!storedImages.length) {
+        galleryEmpty.style.display = "flex";
+        return;
+      }
+      galleryEmpty.style.display = "none";
+      storedImages.forEach((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        galleryGrid.appendChild(img);
+      });
+    }
+
+    // Fill the gallery immediately with the photos above
+    refreshGallery();
+
+    // Full screen slideshow logic
+    let slideshowIndex = 0;
+    let slideshowTimer = null;
+
+    function showSlide(index) {
+      if (!storedImages.length) return;
+      slideshowIndex = (index + storedImages.length) % storedImages.length;
+      slideshowImg.src = storedImages[slideshowIndex];
+    }
+
+    function startSlideshow() {
+      if (!storedImages.length) {
+        burstBtn.textContent = "Add photos in code first 💌";
+        setTimeout(() => (burstBtn.textContent = "Tap for a little surprise 🎁"), 1800);
+        return;
+      }
+      slideshowOverlay.classList.add("active");
+      showSlide(0);
+      if (slideshowTimer) clearInterval(slideshowTimer);
+      slideshowTimer = setInterval(() => {
+        showSlide(slideshowIndex + 1);
+      }, 3000); // change photo every 3 second
+
+      // Start music when slideshow begins
+      if (slideshowAudio) {
+        slideshowAudio.currentTime = 0;
+        slideshowAudio.play().catch(() => {
+          // ignore autoplay errors
+        });
+      }
+    }
+
+    function stopSlideshow() {
+      slideshowOverlay.classList.remove("active");
+      if (slideshowTimer) {
+        clearInterval(slideshowTimer);
+        slideshowTimer = null;
+      }
+      if (slideshowAudio) {
+        slideshowAudio.pause();
+      }
+    }
+
+    burstBtn.addEventListener("click", startSlideshow);
+    slideshowOverlay.addEventListener("click", stopSlideshow);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        stopSlideshow();
+      }
+    });
+  </script>
+</body>
+</html>
